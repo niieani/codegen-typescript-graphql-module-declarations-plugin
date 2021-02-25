@@ -1,0 +1,34 @@
+diff --git a/node_modules/@neovici/github-actions-eslint-annotator/index.js b/node_modules/@neovici/github-actions-eslint-annotator/index.js
+index f705e56..dcf0a23 100755
+--- a/node_modules/@neovici/github-actions-eslint-annotator/index.js
++++ b/node_modules/@neovici/github-actions-eslint-annotator/index.js
+@@ -103,7 +103,7 @@ const headers = {
+ 			files = await getChangedFiles(branch);
+ 		}
+ 		const eslint = require('eslint'),
+-			cli = new eslint.CLIEngine(),
++			cli = new eslint.CLIEngine({extensions: ['.ts']}),
+ 			report = cli.executeOnFiles(files),
+ 			// fixableErrorCount, fixableWarningCount are available too
+ 			levels = ['notice', 'warning', 'failure'];
+@@ -160,15 +160,19 @@ const headers = {
+ 			}
+ 		})));
+ 
++		const conclusion = errorCount > 0 ? 'failure' : warningCount > 0 && 'neutral' || 'success';
+ 		await updateCheck(id, {
+ 			status: 'completed',
+ 			completed_at: (new Date()).toISOString(),
+-			conclusion: errorCount > 0 ? 'failure' : warningCount > 0 && 'neutral' || 'success',
++			conclusion,
+ 			output: {
+ 				title: checkName,
+ 				summary: `${ errorCount } error(s), ${ warningCount } warning(s) found`
+ 			}
+ 		});
++		if (conclusion === 'failure') {
++			process.exitCode = 1;
++		}
+ 	},
+ 	run = async () => {
+ 		const id = await createCheck();

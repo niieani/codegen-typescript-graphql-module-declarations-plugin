@@ -1,0 +1,155 @@
+{
+  "name": "codegen-typescript-graphql-module-declarations-plugin",
+  "version": "0.0.0-development",
+  "description": "",
+  "keywords": [
+    "codegen",
+    "graphql",
+    "typescript"
+  ],
+  "author": "Bazyli Brzóska <npm@invent.life>",
+  "collaborators": [
+    "Bazyli Brzóska <npm@invent.life>"
+  ],
+  "license": "MIT",
+  "main": "dist-cjs/index.js",
+  "module": "dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist-cjs/index.js"
+    },
+    "./dist-cjs/*": {
+      "require": "./dist-cjs/*.js"
+    },
+    "./dist/*": {
+      "import": "./dist/*.js"
+    },
+    "./*": {
+      "import": "./dist/*.js",
+      "require": "./dist-cjs/*.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "prettier:check": "prettier --check src/*",
+    "prettier:write": "prettier --write src/*",
+    "test:unit": "yarn jest",
+    "test:type": "tsc --noEmit",
+    "test:lint": "eslint --ext .ts .",
+    "ci:test:lint": "yarn github-actions-eslint-annotator",
+    "ci:test:type": "yarn test:type",
+    "ci:test:unit": "yarn test:unit --coverage",
+    "test": "yarn test:type && yarn test:lint && yarn test:unit",
+    "build:docs": "rm -rf docs && yarn typedoc",
+    "build:code-cjs": "rm -rf dist-cjs && tsc -p tsconfig.cjs.json",
+    "build:code-modules": "rm -rf dist && tsc -p .",
+    "build:code": "yarn build:code-modules && yarn build:code-cjs",
+    "build": "yarn build:code && yarn build:docs",
+    "release": "./release.sh",
+    "postinstall": "command -v patch-package &> /dev/null && patch-package || true"
+  },
+  "dependencies": {
+    "@graphql-codegen/plugin-helpers": "^1.18.2",
+    "@graphql-codegen/visitor-plugin-common": "^1.18.3",
+    "auto-bind": "^4.0.0",
+    "pascal-case": "^3.1.2"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.8.6",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/plugin-proposal-export-default-from": "^7.8.3",
+    "@babel/plugin-proposal-export-namespace-from": "^7.8.3",
+    "@babel/plugin-proposal-function-sent": "^7.8.3",
+    "@babel/plugin-proposal-json-strings": "^7.8.3",
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.8.3",
+    "@babel/plugin-proposal-numeric-separator": "^7.8.3",
+    "@babel/plugin-proposal-object-rest-spread": "^7.8.3",
+    "@babel/plugin-proposal-optional-chaining": "^7.8.3",
+    "@babel/plugin-proposal-private-methods": "^7.8.3",
+    "@babel/preset-env": "^7.9.0",
+    "@babel/preset-typescript": "^7.8.3",
+    "@babel/register": "^7.8.6",
+    "@neovici/github-actions-eslint-annotator": "^0.4.0",
+    "@types/jest": "^26.0.20",
+    "@types/lodash": "^4.14.149",
+    "@typescript-eslint/eslint-plugin": "^4.15.0",
+    "@typescript-eslint/parser": "^4.15.0",
+    "babel-loader": "^8.0.6",
+    "eslint": "^7.3.1",
+    "eslint-config-prettier": "^7.2.0",
+    "eslint-plugin-eslint-comments": "^3.1.2",
+    "eslint-plugin-import": "^2.21.2",
+    "eslint-plugin-jest": "^24.1.3",
+    "graphql": "^15.5.0",
+    "jest": "^26.6.3",
+    "patch-package": "^6.2.0",
+    "postinstall-postinstall": "^2.1.0",
+    "prettier": "^2.2.1",
+    "semantic-release": "^17.3.8",
+    "typescript": "^4.1.5"
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "modules": "commonjs",
+          "targets": {
+            "node": "current"
+          }
+        }
+      ],
+      "@babel/preset-typescript"
+    ],
+    "plugins": [
+      "@babel/plugin-proposal-export-default-from",
+      "@babel/plugin-proposal-export-namespace-from",
+      [
+        "@babel/plugin-proposal-nullish-coalescing-operator",
+        {
+          "loose": true
+        }
+      ],
+      "@babel/plugin-proposal-optional-chaining",
+      "@babel/plugin-proposal-numeric-separator",
+      [
+        "@babel/plugin-proposal-private-methods",
+        {
+          "loose": true
+        }
+      ],
+      [
+        "@babel/plugin-proposal-class-properties",
+        {
+          "loose": true
+        }
+      ]
+    ]
+  },
+  "prettier": {
+    "semi": false,
+    "tabWidth": 2,
+    "singleQuote": true,
+    "trailingComma": "all",
+    "arrowParens": "always",
+    "bracketSpacing": false
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "src/**/*.ts"
+    ],
+    "roots": [
+      "<rootDir>/src/"
+    ],
+    "transformIgnorePatterns": [
+      "/node_modules/"
+    ],
+    "watchPathIgnorePatterns": [
+      "<rootDir>/node_modules/",
+      "<rootDir>/dist"
+    ]
+  }
+}
