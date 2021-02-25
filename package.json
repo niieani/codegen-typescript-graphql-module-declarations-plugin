@@ -71,7 +71,7 @@
     "@babel/plugin-proposal-private-methods": "^7.8.3",
     "@babel/preset-env": "^7.9.0",
     "@babel/preset-typescript": "^7.8.3",
-    "@babel/register": "^7.8.6",
+    "@babel/register": "^7.13.0",
     "@neovici/github-actions-eslint-annotator": "^0.4.0",
     "@types/jest": "^26.0.20",
     "@types/lodash": "^4.14.149",
