@@ -1,0 +1,121 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - next
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  typecheck:
+    name: Check types (node ${{ matrix.node }})
+    runs-on: [ubuntu-latest]
+    strategy:
+      matrix:
+        node: [14]
+    steps:
+      - name: Information
+        if: github.actor == 'github-actions[bot]'
+        run: echo No need to re-run this job
+      - uses: actions/checkout@v2
+        if: github.actor != 'github-actions[bot]'
+      - name: Cache Dependencies
+        uses: actions/cache@v2.1.4
+        id: yarn-cache # use this to check for `cache-hit`
+        with:
+          path: |
+            ./node_modules
+          key: ${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn
+      - uses: actions/setup-node@v2.1.4
+        if: github.actor != 'github-actions[bot]'
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install dependencies
+        if: steps.yarn-cache.outputs.cache-hit != 'true' && github.actor != 'github-actions[bot]'
+        run: yarn
+      - name: Check types
+        if: github.actor != 'github-actions[bot]'
+        run: yarn ci:test:type
+
+  test:
+    name: Test (node ${{ matrix.node }})
+    runs-on: [ubuntu-latest]
+    strategy:
+      matrix:
+        node: [14]
+    steps:
+      - name: Information
+        if: github.actor == 'github-actions[bot]'
+        run: echo No need to re-run this job
+      - uses: actions/checkout@v2
+        if: github.actor != 'github-actions[bot]'
+        with:
+          # we want git-blame for SonarQube thus need full history
+          fetch-depth: 0
+      - name: Cache Dependencies
+        uses: actions/cache@v2.1.4
+        id: yarn-cache # use this to check for `cache-hit`
+        with:
+          path: |
+            ./node_modules
+          key: ${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn
+      - uses: actions/setup-node@v2.1.4
+        if: github.actor != 'github-actions[bot]'
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install dependencies
+        if: steps.yarn-cache.outputs.cache-hit != 'true' && github.actor != 'github-actions[bot]'
+        run: yarn
+      - name: Lint
+        if: github.actor != 'github-actions[bot]'
+        run: yarn ci:test:lint
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - name: Test
+        if: github.actor != 'github-actions[bot]'
+        run: yarn ci:test:unit
+
+  publish:
+    name: Publish package
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/next')
+    needs:
+      - typecheck
+      - test
+    runs-on: [ubuntu-latest]
+    steps:
+      - name: Information
+        if: github.actor == 'github-actions[bot]'
+        run: echo No need to re-run this job
+      - uses: actions/checkout@v2
+      - name: Cache Dependencies
+        uses: actions/cache@v2.1.4
+        id: yarn-cache # use this to check for `cache-hit`
+        with:
+          path: |
+            ./node_modules
+          key: ${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn
+      - uses: actions/setup-node@v2.1.4
+        with:
+          node-version: 14
+          registry-url: https://registry.npmjs.org/
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+      - name: Install dependencies
+        if: steps.yarn-cache.outputs.cache-hit != 'true' && github.actor != 'github-actions[bot]'
+        run: yarn
+      - name: Build and release
+        run: |
+          yarn
+          ./release.sh
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+          GH_TOKEN: ${{secrets.GITHUB_TOKEN}}

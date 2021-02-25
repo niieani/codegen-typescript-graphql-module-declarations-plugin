@@ -1,0 +1,6 @@
+.github/
+.vscode/
+coverage/
+patches/
+release.config.js
+.eslintrc.js

@@ -1,0 +1,5 @@
+/dist
+/dist-cjs
+**/fixtures
+/patches
+/docs
