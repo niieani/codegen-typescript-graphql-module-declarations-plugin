@@ -1,19 +1,21 @@
+/* eslint-disable no-underscore-dangle */
 // this file unfortunately does not exist in the published version of '@graphql-codegen/typed-document-node/visitor', so this is a copy
 
 import autoBind from 'auto-bind'
-import {
-  LoadedFragment,
-  ClientSideBaseVisitor,
-  ClientSideBasePluginConfig,
-  DocumentMode,
-  RawClientSideBasePluginConfig,
-} from '@graphql-codegen/visitor-plugin-common'
-import type {Types} from '@graphql-codegen/plugin-helpers'
 import type {
   FragmentDefinitionNode,
   GraphQLSchema,
   OperationDefinitionNode,
+  // eslint-disable-next-line node/no-unpublished-import
 } from 'graphql'
+import type { Types } from '@graphql-codegen/plugin-helpers'
+import {
+  ClientSideBasePluginConfig,
+  ClientSideBaseVisitor,
+  DocumentMode,
+  LoadedFragment,
+  RawClientSideBasePluginConfig,
+} from '@graphql-codegen/visitor-plugin-common'
 
 export class TypeScriptDocumentNodesVisitor extends ClientSideBaseVisitor<
   RawClientSideBasePluginConfig,
@@ -54,7 +56,7 @@ export class TypeScriptDocumentNodesVisitor extends ClientSideBaseVisitor<
     }
   }
 
-  protected getDocumentNodeSignature(
+  protected override getDocumentNodeSignature(
     resultType: string,
     variablesTypes: string,
     node: FragmentDefinitionNode | OperationDefinitionNode,

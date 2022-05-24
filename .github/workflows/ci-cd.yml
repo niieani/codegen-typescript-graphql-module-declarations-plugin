@@ -1,8 +1,9 @@
-name: CI
+name: Continuous Integration
 
 on:
   push:
     branches:
+      - master
       - main
       - next
   pull_request:
@@ -10,112 +11,61 @@ on:
       - '**'
 
 jobs:
-  typecheck:
-    name: Check types (node ${{ matrix.node }})
-    runs-on: [ubuntu-latest]
-    strategy:
-      matrix:
-        node: [14]
-    steps:
-      - name: Information
-        if: github.actor == 'github-actions[bot]'
-        run: echo No need to re-run this job
-      - uses: actions/checkout@v2
-        if: github.actor != 'github-actions[bot]'
-      - name: Cache Dependencies
-        uses: actions/cache@v2.1.4
-        id: yarn-cache # use this to check for `cache-hit`
-        with:
-          path: |
-            ./node_modules
-          key: ${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn
-      - uses: actions/setup-node@v2.1.4
-        if: github.actor != 'github-actions[bot]'
-        with:
-          node-version: ${{ matrix.node }}
-      - name: Install dependencies
-        if: steps.yarn-cache.outputs.cache-hit != 'true' && github.actor != 'github-actions[bot]'
-        run: yarn
-      - name: Check types
-        if: github.actor != 'github-actions[bot]'
-        run: yarn ci:test:type
-
   test:
-    name: Test (node ${{ matrix.node }})
-    runs-on: [ubuntu-latest]
+    name: Test on node ${{ matrix.node }}
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [14]
+        node: [16, 18]
     steps:
-      - name: Information
-        if: github.actor == 'github-actions[bot]'
-        run: echo No need to re-run this job
       - uses: actions/checkout@v2
-        if: github.actor != 'github-actions[bot]'
-        with:
-          # we want git-blame for SonarQube thus need full history
-          fetch-depth: 0
-      - name: Cache Dependencies
-        uses: actions/cache@v2.1.4
-        id: yarn-cache # use this to check for `cache-hit`
-        with:
-          path: |
-            ./node_modules
-          key: ${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn
-      - uses: actions/setup-node@v2.1.4
-        if: github.actor != 'github-actions[bot]'
+      - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
-      - name: Install dependencies
-        if: steps.yarn-cache.outputs.cache-hit != 'true' && github.actor != 'github-actions[bot]'
-        run: yarn
-      - name: Lint
-        if: github.actor != 'github-actions[bot]'
-        run: yarn ci:test:lint
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-      - name: Test
-        if: github.actor != 'github-actions[bot]'
-        run: yarn ci:test:unit
+      - id: find-yarn-cache-folder
+        name: Find Yarn's cache folder
+        run: echo "::set-output name=path::$(yarn config get cacheFolder)"
+      - name: Cache Yarn's cache folder
+        uses: actions/cache@v2.1.6
+        with:
+          path: ${{ steps.find-yarn-cache-folder.outputs.path }}
+          key: yarn-cache-folder-os-${{ runner.os }}-node-${{ env.node-version }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            yarn-cache-folder-os-${{ runner.os }}-node-${{ env.node-version }}-
+            yarn-cache-folder-os-${{ runner.os }}-
+      - name: Install dependencies and test
+        run: |
+          yarn install --immutable
+          yarn build
+          yarn test
 
   publish:
-    name: Publish package
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/next')
-    needs:
-      - typecheck
-      - test
-    runs-on: [ubuntu-latest]
+    name: Publish package to NPM
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-actions[bot]' && github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/next')
     steps:
-      - name: Information
-        if: github.actor == 'github-actions[bot]'
-        run: echo No need to re-run this job
       - uses: actions/checkout@v2
-      - name: Cache Dependencies
-        uses: actions/cache@v2.1.4
-        id: yarn-cache # use this to check for `cache-hit`
+      - uses: actions/setup-node@v2
         with:
-          path: |
-            ./node_modules
-          key: ${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          node-version: 16
+      - id: find-yarn-cache-folder
+        name: Find Yarn's cache folder
+        run: echo "::set-output name=path::$(yarn config get cacheFolder)"
+      - name: Cache Yarn's cache folder
+        uses: actions/cache@v2.1.6
+        with:
+          path: ${{ steps.find-yarn-cache-folder.outputs.path }}
+          key: yarn-cache-folder-os-${{ runner.os }}-node-${{ env.node-version }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-yarn
-      - uses: actions/setup-node@v2.1.4
-        with:
-          node-version: 14
-          registry-url: https://registry.npmjs.org/
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-      - name: Install dependencies
-        if: steps.yarn-cache.outputs.cache-hit != 'true' && github.actor != 'github-actions[bot]'
-        run: yarn
+            yarn-cache-folder-os-${{ runner.os }}-node-${{ env.node-version }}-
+            yarn-cache-folder-os-${{ runner.os }}-
       - name: Build and release
         run: |
-          yarn
-          ./release.sh
+          yarn install --immutable
+          yarn build
+          yarn release
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-          GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          NPM_TOKEN: ${{secrets.NPM_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

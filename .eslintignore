@@ -1,7 +1,0 @@
-coverage/**/*
-dist/**/*
-dist-cjs/**/*
-patches/**/*
-release.config.js
-.eslintrc.js
-**/fixtures/**
