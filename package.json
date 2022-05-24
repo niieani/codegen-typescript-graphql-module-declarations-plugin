@@ -7,48 +7,79 @@
     "graphql",
     "typescript"
   ],
-  "author": "Bazyli Brzóska <npm@invent.life>",
-  "collaborators": [
-    "Bazyli Brzóska <npm@invent.life>"
-  ],
+  "bugs": {
+    "url": "https://github.com/niieani/codegen-typescript-graphql-module-declarations-plugin/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/niieani/codegen-typescript-graphql-module-declarations-plugin.git"
+  },
   "license": "MIT",
-  "main": "dist-cjs/index.js",
-  "module": "dist/index.js",
+  "author": "Bazyli Brzóska <npm@invent.life>",
+  "sideEffects": false,
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "require": "./dist-cjs/index.js"
-    },
-    "./dist-cjs/*": {
-      "require": "./dist-cjs/*.js"
-    },
-    "./dist/*": {
-      "import": "./dist/*.js"
+      "import": "./esm/main.js",
+      "require": "./cjs/main.js"
     },
     "./*": {
-      "import": "./dist/*.js",
-      "require": "./dist-cjs/*.js"
+      "import": "./esm/*.js",
+      "require": "./cjs/*.js"
+    },
+    "./cjs": {
+      "require": "./cjs/main.js"
+    },
+    "./cjs/*": {
+      "require": "./cjs/*.js"
+    },
+    "./esm/*": {
+      "import": "./esm/*.js"
     },
     "./package.json": "./package.json"
   },
-  "sideEffects": false,
+  "main": "cjs/main.js",
+  "module": "esm/main.js",
+  "source": "src/main.ts",
   "scripts": {
-    "prettier:check": "prettier --check src/*",
-    "prettier:write": "prettier --write src/*",
-    "test:unit": "yarn jest",
-    "test:type": "tsc --noEmit",
-    "test:lint": "eslint --ext .ts .",
-    "ci:test:lint": "yarn github-actions-eslint-annotator",
-    "ci:test:type": "yarn test:type",
-    "ci:test:unit": "yarn test:unit --coverage",
-    "test": "yarn test:type && yarn test:lint && yarn test:unit",
-    "build:docs": "rm -rf docs && yarn typedoc",
+    "build": "yarn build:cjs && yarn build:esm",
+    "build:cjs": "yarn rrun tsc --outDir cjs --module commonjs --target es2020",
+    "build:code": "yarn build:code-modules && yarn build:code-cjs",
     "build:code-cjs": "rm -rf dist-cjs && tsc -p tsconfig.cjs.json",
     "build:code-modules": "rm -rf dist && tsc -p .",
-    "build:code": "yarn build:code-modules && yarn build:code-cjs",
-    "build": "yarn build:code && yarn build:docs",
-    "release": "./release.sh",
-    "postinstall": "command -v patch-package &> /dev/null && patch-package || true"
+    "build:docs": "rm -rf docs && yarn typedoc",
+    "build:esm": "yarn rrun tsc --outDir esm --module esnext --target es2020",
+    "clean": "git clean -dfX --exclude=node_modules src && beemo typescript:sync-project-refs",
+    "format": "yarn rrun prettier --write \"./{src,tests,.config}/**/!(*.d).{.js,jsx,ts,tsx,json,md}\"",
+    "postinstallDev": "yarn prepare",
+    "prepare": "rrun husky install .config/husky && beemo create-config",
+    "release": "beemo run-script release",
+    "test": "yarn test:format && yarn test:types && yarn test:lint && yarn test:code",
+    "test:code": "beemo jest",
+    "test:format": "yarn rrun prettier --check \"./{src,tests,.config}/**/!(*.d).{.js,jsx,ts,tsx,json,md}\"",
+    "test:lint": "rrun eslint 'src/**/*.{js,jsx,ts,tsx}'",
+    "test:type": "tsc --noEmit",
+    "test:types": "yarn rrun tsc --noEmit",
+    "test:unit": "yarn jest"
+  },
+  "release": {
+    "branches": [
+      "+([0-9])?(.{+([0-9]),x}).x",
+      "master",
+      {
+        "name": "main",
+        "channel": false
+      },
+      "next",
+      {
+        "name": "beta",
+        "prerelease": true
+      },
+      {
+        "name": "alpha",
+        "prerelease": true
+      }
+    ],
+    "tagFormat": "${version}"
   },
   "dependencies": {
     "@graphql-codegen/plugin-helpers": "^1.18.2",
@@ -57,99 +88,14 @@
     "pascal-case": "^3.1.2"
   },
   "devDependencies": {
-    "@babel/cli": "^7.8.4",
-    "@babel/core": "^7.8.6",
-    "@babel/plugin-proposal-class-properties": "^7.8.3",
-    "@babel/plugin-proposal-export-default-from": "^7.8.3",
-    "@babel/plugin-proposal-export-namespace-from": "^7.8.3",
-    "@babel/plugin-proposal-function-sent": "^7.8.3",
-    "@babel/plugin-proposal-json-strings": "^7.8.3",
-    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.8.3",
-    "@babel/plugin-proposal-numeric-separator": "^7.8.3",
-    "@babel/plugin-proposal-object-rest-spread": "^7.8.3",
-    "@babel/plugin-proposal-optional-chaining": "^7.8.3",
-    "@babel/plugin-proposal-private-methods": "^7.8.3",
-    "@babel/preset-env": "^7.9.0",
-    "@babel/preset-typescript": "^7.8.3",
-    "@babel/register": "^7.8.6",
-    "@neovici/github-actions-eslint-annotator": "^0.4.0",
-    "@types/jest": "^26.0.20",
-    "@types/lodash": "^4.14.149",
-    "@typescript-eslint/eslint-plugin": "^4.15.0",
-    "@typescript-eslint/parser": "^4.15.0",
-    "babel-loader": "^8.0.6",
-    "eslint": "^7.3.1",
-    "eslint-config-prettier": "^7.2.0",
-    "eslint-plugin-eslint-comments": "^3.1.2",
-    "eslint-plugin-import": "^2.21.2",
-    "eslint-plugin-jest": "^24.1.3",
-    "graphql": "^15.5.0",
-    "jest": "^26.6.3",
-    "patch-package": "^6.2.0",
-    "postinstall-postinstall": "^2.1.0",
-    "prettier": "^2.2.1",
-    "semantic-release": "^17.3.8",
-    "typescript": "^4.1.5"
+    "@niieani/scaffold": "^1.4.2",
+    "graphql": "^16.5.0"
   },
-  "babel": {
-    "presets": [
-      [
-        "@babel/preset-env",
-        {
-          "modules": "commonjs",
-          "targets": {
-            "node": "current"
-          }
-        }
-      ],
-      "@babel/preset-typescript"
-    ],
-    "plugins": [
-      "@babel/plugin-proposal-export-default-from",
-      "@babel/plugin-proposal-export-namespace-from",
-      [
-        "@babel/plugin-proposal-nullish-coalescing-operator",
-        {
-          "loose": true
-        }
-      ],
-      "@babel/plugin-proposal-optional-chaining",
-      "@babel/plugin-proposal-numeric-separator",
-      [
-        "@babel/plugin-proposal-private-methods",
-        {
-          "loose": true
-        }
-      ],
-      [
-        "@babel/plugin-proposal-class-properties",
-        {
-          "loose": true
-        }
-      ]
-    ]
+  "publishConfig": {
+    "access": "public"
   },
-  "prettier": {
-    "semi": false,
-    "tabWidth": 2,
-    "singleQuote": true,
-    "trailingComma": "all",
-    "arrowParens": "always",
-    "bracketSpacing": false
-  },
-  "jest": {
-    "collectCoverageFrom": [
-      "src/**/*.ts"
-    ],
-    "roots": [
-      "<rootDir>/src/"
-    ],
-    "transformIgnorePatterns": [
-      "/node_modules/"
-    ],
-    "watchPathIgnorePatterns": [
-      "<rootDir>/node_modules/",
-      "<rootDir>/dist"
-    ]
-  }
+  "collaborators": [
+    "Bazyli Brzóska <npm@invent.life>"
+  ],
+  "packageManager": "yarn@4.0.0-rc.6"
 }

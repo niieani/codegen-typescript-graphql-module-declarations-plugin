@@ -1,23 +1,25 @@
 // based off '@graphql-codegen/typescript-graphql-files-modules'
-import {basename, relative} from 'path'
+import { basename, relative } from 'path'
+// eslint-disable-next-line import/no-extraneous-dependencies
 import {
   concatAST,
   FragmentDefinitionNode,
   GraphQLSchema,
   Kind,
   OperationDefinitionNode,
+  // eslint-disable-next-line node/no-unpublished-import
 } from 'graphql'
+import { pascalCase } from 'pascal-case'
 import type {
-  Types,
   PluginFunction,
   PluginValidateFn,
+  Types,
 } from '@graphql-codegen/plugin-helpers'
 import type {
   LoadedFragment,
   RawClientSideBasePluginConfig,
 } from '@graphql-codegen/visitor-plugin-common'
-import {pascalCase} from 'pascal-case'
-import {TypeScriptDocumentNodesVisitor} from './visitor'
+import { TypeScriptDocumentNodesVisitor } from './visitor'
 
 /**
  * @description This plugin is based on the TypeScript GraphQL Files Modules,
@@ -79,13 +81,14 @@ export const plugin: PluginFunction = (
     typedDocumentNodeModule,
   } = config
 
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const allAst = concatAST(documents.map((v) => v.document!))
 
   const allFragments: LoadedFragment[] = [
-    ...(allAst.definitions.filter(
-      (d) => d.kind === Kind.FRAGMENT_DEFINITION,
-    ) as FragmentDefinitionNode[]).map((fragmentDef) => ({
+    ...(
+      allAst.definitions.filter(
+        (d) => d.kind === Kind.FRAGMENT_DEFINITION,
+      ) as FragmentDefinitionNode[]
+    ).map((fragmentDef) => ({
       node: fragmentDef,
       name: fragmentDef.name.value,
       onType: fragmentDef.typeCondition.name.value,
@@ -102,36 +105,32 @@ export const plugin: PluginFunction = (
 
   const useRelative = Boolean(relativeTo)
 
-  const mappedDocuments = documents.reduce(
-    (prev, documentRecord) => {
-      const fileName = useRelative
-        ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          relative(relativeTo, documentRecord.location!)
-        : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          basename(documentRecord.location!)
+  const mappedDocuments = documents.reduce<
+    Record<string, (OperationDefinitionNode | FragmentDefinitionNode)[]>
+  >((prev, documentRecord) => {
+    const fileName = useRelative
+      ? relative(relativeTo, documentRecord.location!)
+      : basename(documentRecord.location!)
 
-      if (!prev[fileName]) {
-        prev[fileName] = []
-      }
+    if (!prev[fileName]) {
+      // eslint-disable-next-line no-param-reassign
+      prev[fileName] = []
+    }
 
-      if (!documentRecord.document) return prev
+    if (!documentRecord.document) return prev
 
-      prev[fileName].push(
-        ...documentRecord.document.definitions.filter(
-          (
-            document,
-          ): document is OperationDefinitionNode | FragmentDefinitionNode =>
-            document.kind === 'OperationDefinition' ||
-            document.kind === 'FragmentDefinition',
-        ),
-      )
+    prev[fileName].push(
+      ...documentRecord.document.definitions.filter(
+        (
+          document,
+        ): document is OperationDefinitionNode | FragmentDefinitionNode =>
+          document.kind === 'OperationDefinition' ||
+          document.kind === 'FragmentDefinition',
+      ),
+    )
 
-      return prev
-    },
-    {} as {
-      [fileName: string]: (OperationDefinitionNode | FragmentDefinitionNode)[]
-    },
-  )
+    return prev
+  }, {})
 
   return Object.keys(mappedDocuments)
     .filter((fileName) => mappedDocuments[fileName].length > 0)
@@ -175,8 +174,9 @@ export const plugin: PluginFunction = (
       if (nodesWithNames.length === 0) return ``
 
       const defaultExport =
-        nodesWithNames.find(({node}) => node.kind === 'OperationDefinition') ??
-        nodesWithNames[0]
+        nodesWithNames.find(
+          ({ node }) => node.kind === 'OperationDefinition',
+        ) ?? nodesWithNames[0]
 
       if (!defaultExport) return ''
 
@@ -188,7 +188,7 @@ declare module '${prefix}${modulePathPrefix}${fileName}' {
       }, import('${typedDocumentNodeModule}').${defaultExport.variablesType}>;
   ${nodesWithNames
     .map(
-      ({node, resultType}) =>
+      ({ node, resultType }) =>
         `export const ${node.name?.value}: import('${typedDocumentNodeModule}').${resultType};`,
     )
     .join('\n')}
