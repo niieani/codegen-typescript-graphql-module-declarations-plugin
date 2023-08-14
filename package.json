@@ -88,7 +88,7 @@
     "pascal-case": "^3.1.2"
   },
   "devDependencies": {
-    "@niieani/scaffold": "^1.4.2",
+    "@niieani/scaffold": "^1.7.7",
     "graphql": "^16.5.0"
   },
   "publishConfig": {
