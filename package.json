@@ -54,7 +54,7 @@
     "prepare": "rrun husky install .config/husky && beemo create-config",
     "release": "beemo run-script release",
     "test": "yarn test:format && yarn test:types && yarn test:lint && yarn test:code",
-    "test:code": "beemo jest",
+    "test:code": "yarn rrun jest",
     "test:format": "yarn rrun prettier --check \"./{src,tests,.config}/**/!(*.d).{.js,jsx,ts,tsx,json,md}\"",
     "test:lint": "rrun eslint 'src/**/*.{js,jsx,ts,tsx}'",
     "test:type": "tsc --noEmit",
@@ -82,14 +82,14 @@
     "tagFormat": "${version}"
   },
   "dependencies": {
-    "@graphql-codegen/plugin-helpers": "^1.18.2",
-    "@graphql-codegen/visitor-plugin-common": "^1.18.3",
+    "@graphql-codegen/plugin-helpers": "^5.0.1",
+    "@graphql-codegen/visitor-plugin-common": "^4.0.1",
     "auto-bind": "^4.0.0",
     "pascal-case": "^3.1.2"
   },
   "devDependencies": {
-    "@niieani/scaffold": "^1.4.2",
-    "graphql": "^16.5.0"
+    "@niieani/scaffold": "^1.7.7",
+    "graphql": "^16.8.0"
   },
   "publishConfig": {
     "access": "public"
@@ -97,5 +97,5 @@
   "collaborators": [
     "Bazyli Brzóska <npm@invent.life>"
   ],
-  "packageManager": "yarn@4.0.0-rc.10"
+  "packageManager": "yarn@4.0.0-rc.47"
 }

@@ -5,7 +5,7 @@ describe('plugin', () => {
     expect(() =>
       (validate as unknown as any)(undefined, undefined, undefined, 'file.ts'),
     ).toThrowErrorMatchingInlineSnapshot(
-      `"Plugin \\"codegen-typescript-graphql-module-declarations\\" requires extension to be \\".d.ts\\"!"`,
+      `"Plugin "codegen-typescript-graphql-module-declarations" requires extension to be ".d.ts"!"`,
     )
   })
 })

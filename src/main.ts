@@ -119,7 +119,7 @@ export const plugin: PluginFunction = (
 
     if (!documentRecord.document) return prev
 
-    prev[fileName].push(
+    prev[fileName]?.push(
       ...documentRecord.document.definitions.filter(
         (
           document,
@@ -132,10 +132,9 @@ export const plugin: PluginFunction = (
     return prev
   }, {})
 
-  return Object.keys(mappedDocuments)
-    .filter((fileName) => mappedDocuments[fileName].length > 0)
-    .map((fileName) => {
-      const operations = mappedDocuments[fileName]
+  return Object.entries(mappedDocuments)
+    .filter(([fileName, operations]) => operations.length > 0)
+    .map(([fileName, operations]) => {
       const namedOperations = operations.filter((d) => d.name?.value)
       const nodesWithNames = namedOperations.map((node) => {
         // based on https://github.com/dotansimha/graphql-code-generator/blob/a790904a1ae42e63ef8552c9b0145f5f3292d474/packages/plugins/other/visitor-plugin-common/src/client-side-base-visitor.ts#L552-L566
