@@ -89,7 +89,7 @@
   },
   "devDependencies": {
     "@niieani/scaffold": "^1.7.7",
-    "graphql": "^16.8.0"
+    "graphql": "^16.8.2"
   },
   "publishConfig": {
     "access": "public"
