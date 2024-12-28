@@ -97,5 +97,5 @@
   "collaborators": [
     "Bazyli Brzóska <npm@invent.life>"
   ],
-  "packageManager": "yarn@4.0.0-rc.47"
+  "packageManager": "yarn@4.0.2"
 }
