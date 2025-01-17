@@ -87,14 +87,14 @@
     "tagFormat": "${version}"
   },
   "dependencies": {
-    "@graphql-codegen/plugin-helpers": "^5.0.1",
-    "@graphql-codegen/visitor-plugin-common": "^4.0.1",
+    "@graphql-codegen/plugin-helpers": "^5.1.0",
+    "@graphql-codegen/visitor-plugin-common": "^5.6.0",
     "auto-bind": "^4.0.0",
     "pascal-case": "^3.1.2"
   },
   "devDependencies": {
-    "@niieani/scaffold": "^1.7.7",
-    "graphql": "^16.8.0"
+    "@niieani/scaffold": "^1.7.41",
+    "graphql": "^16.10.0"
   },
   "publishConfig": {
     "access": "public"
@@ -102,5 +102,5 @@
   "collaborators": [
     "Bazyli Brzóska <npm@invent.life>"
   ],
-  "packageManager": "yarn@4.0.2"
+  "packageManager": "yarn@4.6.0"
 }
