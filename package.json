@@ -37,6 +37,11 @@
     },
     "./package.json": "./package.json"
   },
+  "files": [
+    "cjs",
+    "esm",
+    "src"
+  ],
   "main": "cjs/main.js",
   "module": "esm/main.js",
   "source": "src/main.ts",
